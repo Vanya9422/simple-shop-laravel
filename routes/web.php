@@ -36,11 +36,14 @@ Route::middleware('auth')->group(function () {
         Route::group(['prefix' => 'product'], function () {
             Route::get('list', [SellerProductController::class, 'index'])->name('product.list');
             Route::get('crate', [SellerProductController::class, 'create'])->name('create.product');
-            Route::get('order-list', [SellerProductController::class, 'orderList'])->name('order.list');
             Route::post('store', [SellerProductController::class, 'store'])->name('store.product');
             Route::get('edit/{slug}', [SellerProductController::class, 'edit'])->name('edit.product');
             Route::put('update/{product}', [SellerProductController::class, 'update'])->name('update.product');
             Route::delete('delete/{product}', [SellerProductController::class, 'destroy']);
+            Route::group(['prefix' => 'order'], function (){
+                Route::get('list', [SellerProductController::class, 'orderList'])->name('order.list');
+                Route::put('confirm/{order}', [SellerProductController::class, 'confirmOrder']);
+            });
         });
     });
 

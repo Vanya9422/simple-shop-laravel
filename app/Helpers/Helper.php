@@ -6,6 +6,7 @@ const SUCCESS = 200;
 const NOT_FOUND = 404;
 const BAD_REQUEST = 400;
 const UNAUTHORIZED = 401;
+const ERRMESS = 'There was a problem with the system. Please try again later';
 const GlobalDateFormat = 'Y-m-d H:i:s';
 const StandartDateFormat = 'M d, Y';
 const ImagePicsum = 'https://picsum.photos/200';

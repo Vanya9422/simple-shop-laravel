@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property mixed product
  * @property mixed user_id
  * @property mixed customer_id
+ * @property mixed is_approved
+ * @property mixed customer
+ * @property mixed seller
+ * @property mixed is_confirmed
  */
 class Order extends Model
 {
@@ -39,6 +43,16 @@ class Order extends Model
     ];
 
     /**
+     * Get the user's full name.
+     *
+     * @return string
+     */
+    public function getFullNameAttribute()
+    {
+        return "{$this->name} {$this->last_name}";
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function product()
@@ -46,5 +60,11 @@ class Order extends Model
         return $this->belongsTo(Product::class);
     }
 
-
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function customer()
+    {
+        return $this->belongsTo(User::class,'customer_id');
+    }
 }

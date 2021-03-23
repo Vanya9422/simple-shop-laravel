@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Seller;
 
+use App\Events\OrderConfirmedBySeller;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Image;
+use App\Models\Order;
 use App\Models\Product;
 use App\Repository\Category\CategoryRepository;
 use App\Repository\Product\ProductRepository;
+use App\Repository\User\UserRepository;
 use Flasher\Prime\FlasherInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\Factory;
@@ -34,14 +37,21 @@ class SellerProductController extends Controller
     private $productRepository;
 
     /**
+     * @var ProductRepository
+     */
+    private $userRepository;
+
+    /**
      * SellerProductController constructor.
      * @param CategoryRepository $categoryRepository
      * @param ProductRepository $productRepository
+     * @param UserRepository $userRepository
      */
-    public function __construct(CategoryRepository $categoryRepository, ProductRepository $productRepository)
+    public function __construct(CategoryRepository $categoryRepository, ProductRepository $productRepository, UserRepository $userRepository)
     {
         $this->categoryRepository = $categoryRepository;
         $this->productRepository = $productRepository;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -93,35 +103,6 @@ class SellerProductController extends Controller
      * @param FlasherInterface $flasher
      * @param Product $product
      * @return RedirectResponse
-     * @throws AuthorizationException
-     */
-    public function update(ProductRequest $request, FlasherInterface $flasher, Product $product)
-    {
-        $this->authorize('update', $product);
-        DB::beginTransaction();
-        try {
-            $makeDataProduct = $this->unsetReqParamKeys($request);
-            $productData = $request->except(['general_image', 'multiple_image']);
-            $product->update($productData);
-            $product->uploadFile($makeDataProduct);
-            DB::commit();
-            $flasher->addSuccess('Your Product Successfully Updated');
-            return back();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::info($e->getFile());
-            Log::info($e->getLine());
-            Log::info($e->getPrevious());
-            Log::error($e->getMessage());
-            return back();
-        }
-    }
-
-    /**
-     * @param ProductRequest $request
-     * @param FlasherInterface $flasher
-     * @param Product $product
-     * @return RedirectResponse
      */
     public function store(ProductRequest $request, FlasherInterface $flasher, Product $product)
     {
@@ -136,10 +117,35 @@ class SellerProductController extends Controller
             return back();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::info($e->getFile());
-            Log::info($e->getLine());
-            Log::info($e->getPrevious());
             Log::error($e->getMessage());
+            $flasher->addError(ERRMESS);
+            return back();
+        }
+    }
+
+    /**
+     * @param ProductRequest $request
+     * @param FlasherInterface $flasher
+     * @param Product $product
+     * @return RedirectResponse
+     * @throws AuthorizationException
+     */
+    public function update(ProductRequest $request, FlasherInterface $flasher, Product $product)
+    {
+        $this->authorize('update', $product);
+        DB::beginTransaction();
+        try {
+            $makeDataProduct = $this->unsetReqParamKeys($request);
+            $request->except(['general_image', 'multiple_image']);
+            $product->update($request->all());
+            $product->uploadFile($makeDataProduct);
+            DB::commit();
+            $flasher->addSuccess('Your Product Successfully Updated');
+            return back();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            $flasher->addError(ERRMESS);
             return back();
         }
     }
@@ -161,32 +167,62 @@ class SellerProductController extends Controller
                 'message' => 'Product Successfully deleted !'
             ], 201);
         } catch (\Exception $e) {
-            Log::info($e->getFile());
-            Log::info($e->getLine());
-            Log::info($e->getPrevious());
             Log::error($e->getMessage());
-            return new JsonResponse([
-                'code' => 404,
-                'message' => $e->getMessage()
-            ], 401);
+            return new JsonResponse(['code' => 404, 'message' => ERRMESS], 401);
         }
     }
 
     /**
      * @param Image $image
      * @return JsonResponse
-     * @throws AuthorizationException
      */
-    public function deleteImage(Image $image){
-        $this->authorize('delete-image', $image);
-        $image->delete();
-        return new JsonResponse(['ok'], 201);
+    public function deleteImage(Image $image)
+    {
+        try {
+            $this->authorize('delete-image', $image);
+            $image->delete();
+            return new JsonResponse([
+                'code' => 201,
+                'message' => 'Image Successfully deleted !'
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return new JsonResponse(['code' => 404, 'message' => ERRMESS], 401);
+        }
+    }
+
+    /**
+     * @return Factory|View
+     */
+    public function orderList()
+    {
+        return \view('seller.order-list', [
+            'orders' => $this->userRepository->getOwnOrders()
+        ]);
     }
 
 
-    public function orderList(){
-//        $orders = $this->productRepository
-//        return
+    /**
+     * @param Order $order
+     * @return JsonResponse
+     */
+    public function confirmOrder(Order $order)
+    {
+        try {
+            DB::beginTransaction();
+            $this->authorize('confirm', $order);
+            $order->update(['is_confirmed' => 1]);
+            event(new OrderConfirmedBySeller(auth()->user(), $order));
+            DB::commit();
+            return new JsonResponse([
+                'code' => 201,
+                'message' => 'Order Successfully confirmed !'
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return new JsonResponse(['code' => 404, 'message' => ERRMESS], 401);
+        }
     }
 
     /**
@@ -197,9 +233,6 @@ class SellerProductController extends Controller
     {
         $multiple = $request->file('multiple_image');
         $multiple['general'] = $request->file('general_image');
-        unset($request->all()['general_image']);
-        unset($request->all()['multiple_image']);
         return $multiple;
     }
-
 }

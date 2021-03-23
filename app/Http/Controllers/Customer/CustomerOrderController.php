@@ -54,9 +54,6 @@ class CustomerOrderController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::info($e->getFile());
-            Log::info($e->getLine());
-            Log::info($e->getPrevious());
             Log::error($e->getMessage());
             return new JsonResponse([
                 'code'      =>  404,

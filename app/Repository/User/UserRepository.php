@@ -3,11 +3,6 @@
 namespace App\Repository\User;
 
 use App\Repository\CoreRepository;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 class UserRepository extends CoreRepository
 {
@@ -19,4 +14,15 @@ class UserRepository extends CoreRepository
         return \App\Models\User::class;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getOwnOrders()
+    {
+        return \auth()->user()->orderProducts()->with([
+            'product' => function ($q) {
+                $q->select('id', 'name');
+            },
+        ])->get();
+    }
 }

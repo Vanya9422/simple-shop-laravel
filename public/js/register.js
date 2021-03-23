@@ -14,11 +14,11 @@ function validate() {
         return false;
     } else if (lastName.value === "") {
         lastName.focus();
-        alert("Please provide your Email!");
+        alert("Please provide your Last Name!");
         return false;
     } else if (username.value === "") {
         username.focus();
-        alert("Please provide your Email!");
+        alert("Please provide your Username!");
         return false;
     } else if (email.value === "") {
         email.focus();
@@ -26,7 +26,8 @@ function validate() {
         return false;
     } else if (email.value !== "" && !validateEmail(email.value)) {
         email.focus();
-        alert('The email must be a valid email address.')
+        alert('The email must be a valid email address.');
+        return false;
     } else if (role.value === "") {
         role.focus();
         alert("Please select your Role!");

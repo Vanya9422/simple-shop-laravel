@@ -30,11 +30,4 @@ class OrderRepository extends CoreRepository
             }])->where('customer_id', auth()->id())->orderByDesc('updated_at')->get();
     }
 
-    public function getOrderCustomer(){
-        return $this->startConditions()
-            ->where('')
-            ->with(['product' => function ($q) {
-                $q->select('id', 'name','');
-            }])->where('customer_id', auth()->id())->orderByDesc('updated_at')->get();
-    }
 }

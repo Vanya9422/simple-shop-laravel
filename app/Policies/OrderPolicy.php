@@ -13,7 +13,7 @@ class OrderPolicy
     /**
      * Determine whether the user can view any models.
      *
-     * @param  \App\Models\User  $user
+     * @param \App\Models\User $user
      * @return mixed
      */
     public function viewAny(User $user)
@@ -24,8 +24,8 @@ class OrderPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
      * @return mixed
      */
     public function view(User $user, Order $order)
@@ -40,7 +40,7 @@ class OrderPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\Models\User  $user
+     * @param \App\Models\User $user
      * @return mixed
      */
     public function create(User $user)
@@ -51,8 +51,8 @@ class OrderPolicy
     /**
      * Determine whether the user can update the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
      * @return mixed
      */
     public function update(User $user, Order $order)
@@ -65,8 +65,8 @@ class OrderPolicy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
      * @return mixed
      */
     public function delete(User $user, Order $order)
@@ -75,10 +75,29 @@ class OrderPolicy
     }
 
     /**
+     * Determine whether the user can delete the model.
+     *
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
+     * @return mixed
+     */
+    public function confirm(User $user, Order $order)
+    {
+        if ($order->is_approved
+            && $user->id == $order->product->user_id
+            && !$order->is_confirmed
+            && $user->can('confirm own product orders')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
      * @return mixed
      */
     public function restore(User $user, Order $order)
@@ -89,8 +108,8 @@ class OrderPolicy
     /**
      * Determine whether the user can permanently delete the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Order  $order
+     * @param \App\Models\User $user
+     * @param \App\Models\Order $order
      * @return mixed
      */
     public function forceDelete(User $user, Order $order)
@@ -101,8 +120,8 @@ class OrderPolicy
     /**
      * Perform pre-authorization checks.
      *
-     * @param  \App\Models\User  $user
-     * @param  string  $ability
+     * @param \App\Models\User $user
+     * @param string $ability
      * @return void|bool
      */
     public function after(User $user, $ability)

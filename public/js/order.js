@@ -62,7 +62,7 @@ form.submit(event => {
         type: 'POST',
         data: objectForm,
         beforeSend: function () {
-            $('#submit-order-form').html('creating...');
+            $('#submit-order-form').html('Creating...');
         },
         error: function (resolve) {
             let messages = resolve.responseJSON.errors;
@@ -104,3 +104,30 @@ form.submit(event => {
     });
 });
 
+$('.confirm-order').click(function () {
+
+    if (!$(this).data('approve')){
+        alert('you can not confirm until the admin confirms');
+        return false;
+    }
+
+    if (confirm('Are you sure you want to confirm this order ?')) {
+        let id = $(this).data('id');
+        let badge = $(`.confirm-badge-${id}`).children('.badge');
+        $.ajax({
+            url: `confirm/${id}`,
+            type: 'put',
+            data: id,
+            beforeSend: () => $(this).html('Confirm...'),
+            error: reject => {
+                alert(reject.responseJSON.message);
+                $(this).html('Confirm');
+            },
+            success: resolve => {
+                badge.removeClass('badge-warning');
+                badge.addClass('badge-success');
+                $(this).html('Confirm');
+            },
+        });
+    }
+});

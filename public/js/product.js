@@ -9,6 +9,9 @@ $('.delete-product').click(function () {
             url: `delete/${id}`,
             type: 'delete',
             data: id,
+            error: function (reject) {
+                alert(reject.responseJSON.message);
+            },
             success: function (resolve) {
                 $(`.parent_${id}`).fadeOut(750);
             },
@@ -23,6 +26,9 @@ $('.delete-image').click(function () {
             url: `/delete-image/${id}`,
             type: 'delete',
             data: id,
+            error: function (reject) {
+                alert(reject.responseJSON.message);
+            },
             success: function (resolve) {
                 $(`#image_${id}`).fadeOut(750);
             },

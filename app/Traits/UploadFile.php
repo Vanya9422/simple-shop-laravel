@@ -20,17 +20,19 @@ trait UploadFile
         }
 
         collect($files)->each(function ($file, $key) use ($path, $fileName) {
-            $imageName = getRandom(14) . '.' . $file->getClientOriginalExtension();
-            $file->move($path, $imageName);
-            $array = ['url' => "{$fileName}/$imageName"];
-            if ($key === 'general'){
-                $array['is_primary'] = true;
-                $generalImage = $this->generalImage()->exists();
-                if ($generalImage){
-                    $this->generalImage()->update(['is_primary' => false]);
+            if ($file){
+                $imageName = getRandom(14) . '.' . $file->getClientOriginalExtension();
+                $file->move($path, $imageName);
+                $array = ['url' => "{$fileName}/$imageName"];
+                if ($key === 'general'){
+                    $array['is_primary'] = true;
+                    $generalImage = $this->generalImage()->exists();
+                    if ($generalImage){
+                        $this->generalImage()->update(['is_primary' => false]);
+                    }
                 }
+                $this->images()->create($array);
             }
-            $this->images()->create($array);
         });
     }
 
