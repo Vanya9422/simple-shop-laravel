@@ -7,7 +7,7 @@ trait Sluggable
     /**
      * Boot the model.
      */
-    protected static function boot()
+    protected static function bootSluggable()
     {
         parent::boot();
 
