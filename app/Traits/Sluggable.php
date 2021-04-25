@@ -9,8 +9,6 @@ trait Sluggable
      */
     protected static function bootSluggable()
     {
-        parent::boot();
-
         static::creating(function ($model) {
             $model->slug = slug_generate();
         });
